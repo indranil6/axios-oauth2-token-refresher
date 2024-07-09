@@ -1,0 +1,31 @@
+{
+  "name": "axios-oauth2-token-refresher",
+  "version": "1.0.0",
+  "description": "A custom Axios instance with token refresh handling.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "axios",
+    "token refresh",
+    "refresh token",
+    "axios-oauth2-token-refresher",
+    "oauth2",
+    "oauth",
+    "token",
+    "refresh",
+    "interceptor",
+    "axios interceptor"
+  ],
+  "author": "Indranil Kundu <indranilkundu6@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}
