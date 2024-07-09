@@ -9,6 +9,7 @@ enum Storages {
   sessionStorage = "sessionStorage",
   cookie = "cookie",
 }
+
 interface TokenResponse {
   accessToken: string;
   refreshToken?: string;
@@ -52,46 +53,49 @@ export class AxiosInstance {
   }
 
   private getStorage(
-    storage: string,
+    storage: Storages,
     key: string,
     defaultValue: string
   ): string {
-    if (storage === Storages.localStorage) {
-      return localStorage.getItem(key) || defaultValue;
-    } else if (storage === Storages.sessionStorage) {
-      return sessionStorage.getItem(key) || defaultValue;
-    } else if (storage === Storages.cookie) {
-      return this.getCookieValue(key) || defaultValue;
-    } else {
-      return "";
+    switch (storage) {
+      case Storages.localStorage:
+        return localStorage.getItem(key) || defaultValue;
+      case Storages.sessionStorage:
+        return sessionStorage.getItem(key) || defaultValue;
+      case Storages.cookie:
+        return this.getCookieValue(key) || defaultValue;
+      default:
+        return defaultValue;
     }
   }
 
-  private setStorage(storage: string, key: string, value: string): void {
-    if (storage === Storages.localStorage) {
-      localStorage.setItem(key, value);
-    } else if (storage === Storages.sessionStorage) {
-      sessionStorage.setItem(key, value);
-    } else if (storage === Storages.cookie) {
-      document.cookie = `${key}=${value}`;
+  private setStorage(storage: Storages, key: string, value: string): void {
+    switch (storage) {
+      case Storages.localStorage:
+        localStorage.setItem(key, value);
+        break;
+      case Storages.sessionStorage:
+        sessionStorage.setItem(key, value);
+        break;
+      case Storages.cookie:
+        document.cookie = `${key}=${value}`;
+        break;
     }
   }
 
   private getCookieValue(name: string): string {
     const nameEQ = name + "=";
     const cookies = document.cookie.split(";");
-
-    for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i].trim();
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
       if (cookie.indexOf(nameEQ) === 0) {
         return cookie.substring(nameEQ.length, cookie.length);
       }
     }
-
     return "";
   }
 
-  clearStorage() {
+  private clearStorage(): void {
     this.setStorage(
       this.options.accessTokenStorage,
       this.options.accessTokenStorageKey,
@@ -103,6 +107,7 @@ export class AxiosInstance {
       ""
     );
   }
+
   private async obtainNewAccessToken(): Promise<TokenResponse> {
     if (!this.options.accessTokenRefresherEndpoint) {
       throw new Error("accessTokenRefresherEndpoint must be provided");
@@ -121,22 +126,24 @@ export class AxiosInstance {
       );
 
       if (response.status === 200) {
-        let foundAccessToken = this.options
+        const foundAccessToken = this.options
           .accessTokenGetterFnFromRefresherResponse
           ? this.options.accessTokenGetterFnFromRefresherResponse(response.data)
           : response.data.accessToken;
+
         this.setStorage(
           this.options.accessTokenStorage,
           this.options.accessTokenStorageKey,
           foundAccessToken
         );
 
-        let foundRefreshToken = this.options
+        const foundRefreshToken = this.options
           .refreshTokenGetterFnFromRefresherResponse
           ? this.options.refreshTokenGetterFnFromRefresherResponse(
               response.data
             )
           : response.data.refreshToken;
+
         if (foundRefreshToken) {
           this.setStorage(
             this.options.refreshTokenStorage,
@@ -144,12 +151,14 @@ export class AxiosInstance {
             foundRefreshToken
           );
         }
+
         return {
           accessToken: foundAccessToken || "",
           refreshToken: foundRefreshToken || "",
         };
       }
     } catch (error) {
+      console.error("Error obtaining new access token:", error);
       this.clearStorage();
       throw new Error("Something went wrong while refreshing access token");
     }
@@ -162,8 +171,8 @@ export class AxiosInstance {
     let runningPromise: Promise<string> | undefined = undefined;
 
     return () => {
-      if (isCalled) {
-        return runningPromise!;
+      if (isCalled && runningPromise) {
+        return runningPromise;
       } else {
         isCalled = true;
         runningPromise = this.obtainNewAccessToken()
@@ -181,6 +190,7 @@ export class AxiosInstance {
                 tokenResponse.refreshToken
               );
             }
+
             return tokenResponse.accessToken;
           })
           .finally(() => {
@@ -211,14 +221,11 @@ export class AxiosInstance {
         if (isExpired) {
           const updatedToken = await this.refreshExpiredToken();
           req.headers.Authorization = updatedToken;
-          return req;
         }
 
         return req;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     this.axiosInstance.interceptors.response.use(
