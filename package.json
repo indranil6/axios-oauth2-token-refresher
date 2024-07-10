@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -22,10 +22,10 @@
   ],
   "author": "Indranil Kundu <indranilkundu6@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "axios": "^1.7.2"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "rimraf": "^6.0.0",
+    "axios": ">=1.6.1",
     "typescript": "^5.5.3"
   }
 }

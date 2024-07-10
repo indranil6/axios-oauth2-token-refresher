@@ -1,37 +1,35 @@
-import axios, {
-  AxiosInstance as AxiosInstanceType,
-  InternalAxiosRequestConfig,
-} from "axios";
 import { jwtDecode } from "./jwt-decode";
 
-enum Storages {
+export enum Storages {
   localStorage = "localStorage",
   sessionStorage = "sessionStorage",
   cookie = "cookie",
 }
 
-interface TokenResponse {
+export interface TokenResponse {
   accessToken: string;
   refreshToken?: string;
 }
 
-interface AxiosInstanceOptions {
+export interface AxiosInstanceOptions {
+  axios: any; // Add this line to accept axios instance
   baseURL: string;
   accessTokenStorage: Storages;
   refreshTokenStorage: Storages;
   accessTokenStorageKey: string;
   refreshTokenStorageKey: string;
   accessTokenRefresherEndpoint: string;
+  tokenRefresherPayloadGenerator?: (token: string) => any;
   accessTokenGetterFnFromRefresherResponse?: (
-    response: TokenResponse
+    response: any // Change type to any
   ) => string;
   refreshTokenGetterFnFromRefresherResponse?: (
-    response: TokenResponse
+    response: any // Change type to any
   ) => string;
 }
 
 export class AxiosInstance {
-  private axiosInstance: AxiosInstanceType;
+  private axiosInstance: any; // Change type to any
   private accessToken: string | null;
   private refreshExpiredToken: () => Promise<string>;
 
@@ -41,10 +39,10 @@ export class AxiosInstance {
       this.options.accessTokenStorageKey,
       ""
     );
-    this.axiosInstance = axios.create({
+    this.axiosInstance = this.options.axios.create({
       baseURL: options.baseURL,
       headers: {
-        Authorization: this.accessToken || "",
+        Authorization: `Bearer ${this.accessToken || ""}`,
       },
     });
 
@@ -114,15 +112,18 @@ export class AxiosInstance {
     }
 
     try {
-      const response = await axios.post(
+      let refreshToken = this.getStorage(
+        this.options.refreshTokenStorage,
+        this.options.refreshTokenStorageKey,
+        ""
+      );
+      const response = await this.options.axios.post(
         this.options.accessTokenRefresherEndpoint,
-        {
-          token: this.getStorage(
-            this.options.refreshTokenStorage,
-            this.options.refreshTokenStorageKey,
-            ""
-          ),
-        }
+        this.options.tokenRefresherPayloadGenerator
+          ? this.options.tokenRefresherPayloadGenerator(refreshToken || "")
+          : {
+              token: refreshToken,
+            }
       );
 
       if (response.status === 200) {
@@ -204,14 +205,15 @@ export class AxiosInstance {
 
   private setupInterceptors() {
     this.axiosInstance.interceptors.request.use(
-      async (req: InternalAxiosRequestConfig) => {
+      async (req: any) => {
+        // Change type to any
         this.accessToken = this.getStorage(
           this.options.accessTokenStorage,
           this.options.accessTokenStorageKey,
           ""
         );
         req.headers = req.headers || {};
-        req.headers.Authorization = this.accessToken || "";
+        req.headers.Authorization = `Bearer ${this.accessToken || ""}`;
 
         const decodedToken: { exp: number } = jwtDecode(
           this.accessToken as string
@@ -220,17 +222,18 @@ export class AxiosInstance {
 
         if (isExpired) {
           const updatedToken = await this.refreshExpiredToken();
-          req.headers.Authorization = updatedToken;
+          req.headers.Authorization = `Bearer ${updatedToken}`;
         }
 
         return req;
       },
-      (error) => Promise.reject(error)
+      (error: any) => Promise.reject(error) // Change type to any
     );
 
     this.axiosInstance.interceptors.response.use(
-      (response) => response,
-      async (error) => {
+      (response: any) => response, // Change type to any
+      async (error: any) => {
+        // Change type to any
         const originalRequest = error.config;
 
         if (
@@ -243,7 +246,7 @@ export class AxiosInstance {
 
         if (error?.response?.status === 401) {
           const updatedToken = await this.refreshExpiredToken();
-          originalRequest.headers.Authorization = updatedToken;
+          originalRequest.headers.Authorization = `Bearer ${updatedToken}`;
           return this.axiosInstance(originalRequest);
         }
 
@@ -252,7 +255,8 @@ export class AxiosInstance {
     );
   }
 
-  public getAxiosInstance(): AxiosInstanceType {
+  public getAxiosInstance(): any {
+    // Change type to any
     return this.axiosInstance;
   }
 }
