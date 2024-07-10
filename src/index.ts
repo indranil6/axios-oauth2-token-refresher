@@ -118,7 +118,9 @@ export class AxiosInstance {
         ""
       );
       const response = await this.options.axios.post(
-        this.options.accessTokenRefresherEndpoint,
+        this.options.accessTokenRefresherEndpoint?.startsWith("http")
+          ? this.options.accessTokenRefresherEndpoint
+          : `${this.options.baseURL}${this.options.accessTokenRefresherEndpoint}`,
         this.options.tokenRefresherPayloadGenerator
           ? this.options.tokenRefresherPayloadGenerator(refreshToken || "")
           : {
@@ -129,7 +131,7 @@ export class AxiosInstance {
       if (response.status === 200) {
         const foundAccessToken = this.options
           .accessTokenGetterFnFromRefresherResponse
-          ? this.options.accessTokenGetterFnFromRefresherResponse(response.data)
+          ? this.options.accessTokenGetterFnFromRefresherResponse(response)
           : response.data.accessToken;
 
         this.setStorage(
@@ -140,9 +142,7 @@ export class AxiosInstance {
 
         const foundRefreshToken = this.options
           .refreshTokenGetterFnFromRefresherResponse
-          ? this.options.refreshTokenGetterFnFromRefresherResponse(
-              response.data
-            )
+          ? this.options.refreshTokenGetterFnFromRefresherResponse(response)
           : response.data.refreshToken;
 
         if (foundRefreshToken) {
