@@ -5,8 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc --declaration",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/indranil6/axios-oauth2-token-refresher.git"
   },
   "keywords": [
     "axios",
@@ -21,6 +25,10 @@
     "axios interceptor"
   ],
   "author": "Indranil Kundu <indranilkundu6@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/indranil6/axios-oauth2-token-refresher/issues"
+  },
+  "homepage": "https://github.com/indranil6/axios-oauth2-token-refresher#readme",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {

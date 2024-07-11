@@ -13,24 +13,23 @@ export interface TokenResponse {
 
 export interface AxiosInstanceOptions {
   axios: any; // Add this line to accept axios instance
+  axiosConfig?: any;
   baseURL: string;
   accessTokenStorage: Storages;
   refreshTokenStorage: Storages;
   accessTokenStorageKey: string;
   refreshTokenStorageKey: string;
   accessTokenRefresherEndpoint: string;
+  isBearer?: boolean;
   tokenRefresherPayloadGenerator?: (token: string) => any;
-  accessTokenGetterFnFromRefresherResponse?: (
-    response: any // Change type to any
-  ) => string;
-  refreshTokenGetterFnFromRefresherResponse?: (
-    response: any // Change type to any
-  ) => string;
+  accessTokenGetterFnFromRefresherResponse?: (response: any) => string;
+  refreshTokenGetterFnFromRefresherResponse?: (response: any) => string;
 }
 
 export class AxiosInstance {
-  private axiosInstance: any; // Change type to any
+  private axiosInstance: any;
   private accessToken: string | null;
+  private axiosConfig: any;
   private refreshExpiredToken: () => Promise<string>;
 
   constructor(private options: AxiosInstanceOptions) {
@@ -39,10 +38,18 @@ export class AxiosInstance {
       this.options.accessTokenStorageKey,
       ""
     );
+
+    this.axiosConfig = options.axiosConfig || {
+      headers: {},
+    };
     this.axiosInstance = this.options.axios.create({
+      ...this.axiosConfig,
       baseURL: options.baseURL,
       headers: {
-        Authorization: `Bearer ${this.accessToken || ""}`,
+        ...(this.axiosConfig?.headers || {}),
+        Authorization: this.options.isBearer
+          ? `Bearer ${this.accessToken || ""}`
+          : this.accessToken || "",
       },
     });
 
@@ -206,14 +213,15 @@ export class AxiosInstance {
   private setupInterceptors() {
     this.axiosInstance.interceptors.request.use(
       async (req: any) => {
-        // Change type to any
         this.accessToken = this.getStorage(
           this.options.accessTokenStorage,
           this.options.accessTokenStorageKey,
           ""
         );
         req.headers = req.headers || {};
-        req.headers.Authorization = `Bearer ${this.accessToken || ""}`;
+        req.headers.Authorization = this.options.isBearer
+          ? `Bearer ${this.accessToken || ""}`
+          : this.accessToken || "";
 
         const decodedToken: { exp: number } = jwtDecode(
           this.accessToken as string
@@ -222,18 +230,19 @@ export class AxiosInstance {
 
         if (isExpired) {
           const updatedToken = await this.refreshExpiredToken();
-          req.headers.Authorization = `Bearer ${updatedToken}`;
+          req.headers.Authorization = this.options.isBearer
+            ? `Bearer ${updatedToken}`
+            : updatedToken;
         }
 
         return req;
       },
-      (error: any) => Promise.reject(error) // Change type to any
+      (error: any) => Promise.reject(error)
     );
 
     this.axiosInstance.interceptors.response.use(
-      (response: any) => response, // Change type to any
+      (response: any) => response,
       async (error: any) => {
-        // Change type to any
         const originalRequest = error.config;
 
         if (
@@ -246,7 +255,9 @@ export class AxiosInstance {
 
         if (error?.response?.status === 401) {
           const updatedToken = await this.refreshExpiredToken();
-          originalRequest.headers.Authorization = `Bearer ${updatedToken}`;
+          originalRequest.headers.Authorization = this.options.isBearer
+            ? `Bearer ${updatedToken}`
+            : updatedToken;
           return this.axiosInstance(originalRequest);
         }
 
@@ -256,7 +267,6 @@ export class AxiosInstance {
   }
 
   public getAxiosInstance(): any {
-    // Change type to any
     return this.axiosInstance;
   }
 }
