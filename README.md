@@ -317,7 +317,7 @@ This project is licensed under the MIT License.
   <tbody>
     <tr>
       <td>2024-07-11</td>
-      <td>1.0.0</td>
+      <td>1.0.1</td>
       <td>Initial release of axios-oauth2-token-refresher package</td>
     </tr>
     

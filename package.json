@@ -1,6 +1,6 @@
 {
   "name": "axios-oauth2-token-refresher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "axios-oauth2-token-refresher is a utility library for managing OAuth2 tokens with automatic refreshing capabilities in Axios-based applications. It provides an easy way to handle access token expiration and refreshing seamlessly.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
