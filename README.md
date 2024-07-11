@@ -1,4 +1,4 @@
-# axios-oauth-token-refresher
+# axios-oauth2-token-refresher
 
 `axios-oauth2-token-refresher` is a utility library for managing OAuth2 tokens with automatic refreshing capabilities in Axios-based applications. It provides an easy way to handle access token expiration and refreshing seamlessly.
 
@@ -108,7 +108,7 @@ To see an example implementation, check out our example project repository. It c
 - An Express server that demonstrates the token refresher endpoint.
 - A React project that consumes this endpoint using axios-oauth2-token-refresher.
 
-[Check out the example repository here](https://github.com/indranil6/axios-oauth-token-refresher-example)
+[Check out the example repository here](https://github.com/indranil6/axios-oauth2-token-refresher-example)
 
 ## Configuration Options
 
@@ -318,7 +318,7 @@ This project is licensed under the MIT License.
     <tr>
       <td>2024-07-11</td>
       <td>1.0.0</td>
-      <td>Initial release of axios-oauth-token-refresher package</td>
+      <td>Initial release of axios-oauth2-token-refresher package</td>
     </tr>
     
    
@@ -327,7 +327,7 @@ This project is licensed under the MIT License.
 
 ## Support
 
-If you encounter any issues or have any questions, feel free to open an issue on the [GitHub repository](https://github.com/indranil6/axios-oauth-token-refresher).
+If you encounter any issues or have any questions, feel free to open an issue on the [GitHub repository](https://github.com/indranil6/axios-oauth2-token-refresher).
 
 ## Acknowledgments
 
